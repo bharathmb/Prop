@@ -8,6 +8,7 @@
 						<!--<script src="plot_df.js"></script>-->
 						<script src="read_df.js"></script>
 						<script src="model_df.js"></script>
+						<script src="scoring_df.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no">
   <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">
@@ -30,7 +31,8 @@
 	  background-color : white;
     }
 	#output2{
-     		 min-height: 200px;
+     		 height: 50px;
+		 width: 600px;
      		 border: solid gray 1px;
 	  	padding: 3px;
 	  	color:black;
@@ -113,13 +115,13 @@
                     <span>Variable Profiling</span>
                   </li>
                   <li>
-                    <span>Select the Model</span>
+                    <span>Build a Model</span>
                   </li>
                   <li>
-                    <span>View Results</span>
+                    <span>View Model Results</span>
                   </li>
                   <li>
-                    <span>Evaluate Model</span>
+                    <span>Score the Model</span>
                   </li>
                 </ul>
 
@@ -150,7 +152,7 @@
 					<pre id="output"><code></code></pre>	
                           </div>
 
-                          <div class="lds-dual-ring" id="status1">Cleaning in progress</div>
+                          <div class="lds-dual-ring" id="status1">Go on & feed me a CSV!</div>
 
                         </div>
                       </li>
@@ -200,11 +202,10 @@
 
 
                       <li class="l-section section">
-                        <div class="about">
+                        <div class="about">						
 
                           <div class="radio-list">
-
-                            <h2>Select the Model</h2>
+						  <h2><div id="status3">Select a Model to train!</div></h2>
 
                             <div class="radio-list-cover">
                               <div class="radio">
@@ -245,11 +246,10 @@
                             </div>
 
                             <div>
-                              <button id="show_perf">Show Performance</button>
-                            </div>
+                              <button id="show_perf">Start Building</button>
+							</div>
 
                           </div>
-
                         </div>
                       </li>
 
@@ -316,11 +316,12 @@
 								<b>Input Data File Path</b> <input type="file" id="uploadFile2">   
 									
 								<b><button id="downloadbutton" type="button">Download Results Here!</button></b>
-								
-								<pre id="output2"><code></code></pre>	
+									
                           </div>
+						  
+						  <pre id="output2"><code></code></pre>	
 
-                          <div class="lds-dual-ring" id="status2">Evaluation in progress</div>
+                          <div class="lds-dual-ring" id="status2">Waiting for Dataset to Score on!</div>
 
                         </div>
 
@@ -362,7 +363,7 @@
       <li>Variable Profiling</li>
       <li>Select the Model</li>
       <li>Results</li>
-      <li>Evaluate Model</li>
+      <li>Scoring</li>
     </ul>
 
 

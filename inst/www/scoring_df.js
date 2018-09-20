@@ -1,14 +1,16 @@
 $(document).ready(function(){	
   
-  $("#show_perf").on("click", function(){
+  $("#downloadbutton").on("click", function(){
     
-	//alert("inside Ensemble Model....");
-	    $("#show_perf").attr("disabled", "disabled");  
+	alert("inside Ensemble Model....");
+	    $("#downloadbutton").attr("disabled", "disabled");  
 	  
-	   $("#status3").text("Setting up Train & Test...");
+	  $("#status2").text("Scoring in progress...");
 	
 	//Check which model is selected
 	var dvname=$("#dvname").val()
+	
+	var oos_path= $("#uploadFile2")[0].files[0];
 	
 	var isChecked=""
 	
@@ -36,18 +38,17 @@ $(document).ready(function(){
 		 isChecked="select-7"
 		}
 		
-		
-	    $("#status3").text("Training the Model... Will be ready in a jiffy!");
-		
 		//alert(isChecked);
 
 		
     //perform the request
-    var req = ocpu.call("modelling_module", {
-      "DV" : dvname, "model_selection" :  isChecked
+    var req = ocpu.call("scoring_module", {
+	    "oos_path":oos_path, "DV" : dvname, "model_selection" :  isChecked
     }, function(session){
+		$("#status2").text("Hurray! Scoring Completed... Find the results in c:/opencpuip_app/scored_dataset.csv");	
 		//get results and display
-		$("#status3").text("Model Completed! Go check the results now");
+		alert("Scoring Done");
+		
     });
     
     //if R returns an error, alert the error message
@@ -57,7 +58,7 @@ $(document).ready(function(){
     
     //after request complete, re-enable the button 
     req.always(function(){
-      $("#show_perf").removeAttr("disabled")
+      $("#downloadbutton").removeAttr("disabled")
     });   
 
   });
