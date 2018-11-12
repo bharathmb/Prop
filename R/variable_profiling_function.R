@@ -7,20 +7,6 @@ variable_profiling_function  <- function(dv, var, ds) {
   drops <- c("X")
   dat<-dat[ , !(names(dat) %in% drops)]
   
-  ##TRAIN & TEST SPLIT
-  ## 80% of the sample size
-  smp_size <- floor((ds/100) * nrow(dat))
-  
-  ## set the seed to make your partition reproducible
-  set.seed(123)
-  train_ind <- sample(seq_len(nrow(dat)), size = smp_size)
-  
-  train_from_user <- dat[train_ind, ]
-  test_from_user <- dat[-train_ind, ]
-  
-  write.csv(train_from_user,"C:/opencpuapp_ip/train_comp.csv");
-  write.csv(test_from_user,"C:/opencpuapp_ip/test_comp.csv");
-  
   var1 = dat[,var]
   dv = dat[,dv]
   

@@ -149,6 +149,20 @@ top_var_graph <- function(target.var.name){
   names(data_binned1)[names(data_binned1)=="DV"] <- target.var.name
   write.csv(data_binned1,"c:/opencpuapp_ip/data_after_binning.csv")
   
+    ##TRAIN & TEST SPLIT
+  ## 80% of the sample size
+  smp_size <- floor((as.numeric(ds)/100) * nrow(data_binned1))
+  
+  ## set the seed to make your partition reproducible
+  set.seed(123)
+  train_ind <- sample(seq_len(nrow(data_binned1)), size = smp_size)
+  
+  train_from_user <- data_binned1[train_ind, ]
+  test_from_user <- data_binned1[-train_ind, ]
+  
+  write.csv(train_from_user,"C:/opencpuapp_ip/train_comp.csv");
+  write.csv(test_from_user,"C:/opencpuapp_ip/test_comp.csv");
+  
   data_binned <- dataBinning(data)
   allFiltRes <- univFiltRes(data_binned)
   
