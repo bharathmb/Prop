@@ -146,6 +146,8 @@ $(document).ready(function(){
 	//var filename = $("#uploadFile").val();
 	  var filename = $("#uploadFile")[0].files[0];
 	  dvname=$("#dvname").val()
+	  preddv=$("#preddv").val()
+	  data-split=$("#data-split").val()
 	  
 	  
     
