@@ -122,7 +122,7 @@ $(document).ready(function(){
 				
 				//var req = $("#plotdiv").rplot("randomplot", {	nfield : 100, distfield : "normal" , title : data})
 				
-				var req = $("#plotdiv").rplot("variable_profiling_function", {dv : dvname, var: tar, ds: data-split});
+				var req = $("#plotdiv").rplot("variable_profiling_function", {dv : dvname, var: tar, ds: ds});
 				
 				//if R returns an error, alert the error message
 				req.fail(function(){
@@ -145,9 +145,9 @@ $(document).ready(function(){
     //read the value for 'filename'
 	//var filename = $("#uploadFile").val();
 	  var filename = $("#uploadFile")[0].files[0];
-	  dvname=$("#dvname").val()
-	  preddv=$("#preddv").val()
-	  data-split=$("#data-split").val()
+	  dvname=$("#dvname").val();
+	  preddv=$("#preddv").val();
+	  ds=$("#data-split").val();
 	  
 	  
     
@@ -168,7 +168,7 @@ $(document).ready(function(){
       return;
     }
 	
-	if(!data-split){
+	if(!ds){
       alert("Please provide split ratio name.");
       return;
     }
