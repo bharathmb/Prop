@@ -1,4 +1,4 @@
-variable_profiling_function  <- function(dv, var, ds) {
+variable_profiling_function  <- function(dv, var) {
   
   library(ggplot2)
   

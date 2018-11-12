@@ -1,5 +1,5 @@
 
-top_var_graph <- function(target.var.name){
+top_var_graph <- function(target.var.name, ds){
   data<- read.csv("C:/opencpuapp_ip/cleaned_data.csv")
   
   drops <- c("X")

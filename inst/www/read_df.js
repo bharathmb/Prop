@@ -99,7 +99,7 @@ $(document).ready(function(){
 				
 				//var req = $("#plotdiv1").rplot("randomplot", {	nfield : 100, distfield : "normal"})
 				
-				var req = $("#plotdiv1").rplot("top_var_graph", {"target.var.name" : dvname});
+				var req = $("#plotdiv1").rplot("top_var_graph", {"target.var.name" : dvname, "ds" : ds });
 				
 				//if R returns an error, alert the error message
 				req.fail(function(){
@@ -122,7 +122,7 @@ $(document).ready(function(){
 				
 				//var req = $("#plotdiv").rplot("randomplot", {	nfield : 100, distfield : "normal" , title : data})
 				
-				var req = $("#plotdiv").rplot("variable_profiling_function", {dv : dvname, var: tar, ds: ds});
+				var req = $("#plotdiv").rplot("variable_profiling_function", {dv : dvname, var: tar});
 				
 				//if R returns an error, alert the error message
 				req.fail(function(){
