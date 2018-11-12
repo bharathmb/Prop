@@ -162,12 +162,12 @@ $(document).ready(function(){
     }
 	
 	if(!preddv){
-      alert("Please provide DV name.");
+      alert("Please provide DV class name.");
       return;
     }
 	
 	if(!data-split){
-      alert("Please provide DV name.");
+      alert("Please provide split ratio name.");
       return;
     }
 	
