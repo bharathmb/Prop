@@ -32,10 +32,8 @@ $("#show_perf").on("click", function(){
 	//alert("inside Ensemble Model....");
 	
 	    $("#show_perf").attr("disabled", "disabled");  
-		
-		$('#building_inter').show();
 	  
-	   $("#building_inter").text("Setting up Train & Test...");
+	   $("#status3").text("Setting up Train & Test...");
 	   
 	   
 	
@@ -70,7 +68,7 @@ $("#show_perf").on("click", function(){
 		}
 		
 		
-	    $("#building_inter").text("Training the Model... Will be ready in a jiffy!");
+	    $("#status3").text("Training the Model... Will be ready in a jiffy!");
 		
 		
 		//alert(isChecked);
@@ -82,7 +80,7 @@ $("#show_perf").on("click", function(){
     }, function(session){
 		$("#building_inter").show().delay(1000).fadeOut(100,showModelResults);
 		//get results and display
-		$("#building_inter").text("Model Completed! Go check the results now");
+		$("#status3").text("Model Completed! Go check the results now");
     });
     
     //if R returns an error, alert the error message
