@@ -1,5 +1,4 @@
-$(document).ready(function(){	
-
+$(document).ready(function(){
 	//hide the model results initially
 	$('#model_out').hide();
 	
@@ -26,76 +25,17 @@ $(document).ready(function(){
 			$(".split_msg_out").html("");
 		}
 	});
-  
-$("#show_perf").on("click", function(){
-    
-	//alert("inside Ensemble Model....");
 	
-	    $("#show_perf").attr("disabled", "disabled");  
-	  
-	   $("#status3").text("Setting up Train & Test...");
-	   
-	   
-	
-	//Check which model is selected
-	var dvname=$("#dvname").val()
-	var preddv=$("#preddv").val()
-	
-	var isChecked=""
-	
-	if($('#LR').prop('checked')==true)
-		{
-		 isChecked="LR"
-		} else if($('#RF').prop('checked')==true)
-		{
-		 isChecked="RF"
-		} else if($('#SVM').prop('checked')==true)
-		{
-		 isChecked="SVM"
-		} else if($('#GBM').prop('checked')==true)
-		{
-		 isChecked="GBM"
-		} else if($('#NB').prop('checked')==true)
-		{
-		 isChecked="NB"
-		} else if($('#NNET').prop('checked')==true)
-		{
-		 isChecked="NNET"
-		}
-		else if($('#OEM').prop('checked')==true)
-		{
-		 isChecked="OEM"
-		}
+	//hide the model list and show the model results on click
+	$("#show_perf").click(function() {
+		$('#model_opt').hide();
 		
+		##Add function code
 		
-	    $("#status3").text("Training the Model... Will be ready in a jiffy!");
-		
-		
-		//alert(isChecked);
-
-		
-    //perform the request
-    var req = ocpu.call("modelling_module", {
-      "DV" : dvname, "model_selection" :  isChecked, "predictorClass" : preddv
-    }, function(session){
 		$("#building_inter").show().delay(1000).fadeOut(100,showModelResults);
-		//get results and display
-		$("#status3").text("Model Completed! Go check the results now");
-    });
-    
-    //if R returns an error, alert the error message
-    req.fail(function(){
-      alert("Server error: " + req.responseText);
-    });
-    
-    //after request complete, re-enable the button 
-    req.always(function(){
-      $("#show_perf").removeAttr("disabled")
-    });   
-
-  });
-
-  	function showModelResults()
+	});
+	
+	function showModelResults()
 	{
 		var model = $("input[name='radio']:checked").val();
 		model_persist = model;
@@ -169,7 +109,5 @@ $("#show_perf").on("click", function(){
 		
 		});
 	});
-  
 
-  });
-
+});

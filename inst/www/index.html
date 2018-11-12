@@ -142,14 +142,22 @@
                         <div class="intro">
 
                           <h2><b>Choose CSV File</b></h2>
+						  <br></br><br></br>
 						  <div class="choose-data">
 		 	<b>Input Data File Path</b> <input type="file" id="uploadFile"> 
-			
                           
-			    <b>DV name: </b> <input type="text" id="dvname">
-
-                            <b><button id="submitbutton" type="button">Upload CSV file!</button></b>
+			    
+				<br></br>
+        
+							<br>
+							<b>DV name: </b> <input type="text" id="dvname">
+							<b>DV Level: </b> <input type="text" id="preddv">
+							 <b>Data Split (%)</b> <input type="text" id="data-split" align="left">
+							</br>
+							<br><b><button id="submitbutton" type="button">Upload CSV file!</button></b></br>
+							<br>
 					<pre id="output"><code></code></pre>	
+					</br>
                           </div>
 
                           <div class="lds-dual-ring" id="status1">Go on & feed me a CSV!</div>
@@ -200,7 +208,7 @@
                       </li>
 
 
-
+						<!--
                       <li class="l-section section">
                         <div class="about">						
 
@@ -209,39 +217,38 @@
 
                             <div class="radio-list-cover">
                               <div class="radio">
-                                <input id="select-1" name="radio" type="radio" checked>
-                                <label for="select-1" class="radio-label">Logistic Regression</label>
-                              </div>
+									<input id="select-1" name="radio" type="radio" value="LR" checked>
+									<label for="select-1" class="radio-label">Logistic Regression</label>
+								</div>
+								<div class="radio">
+									<input id="select-2" name="radio" type="radio" value="RF">
+									<label for="select-2" class="radio-label">Random Forest</label>
+								</div>
+								
+								<div class="radio">
+									<input id="select-3" name="radio" type="radio" value="SVM">
+									<label for="select-3" class="radio-label">SVM</label>
+								</div>
 
-                              <div class="radio">
-                                <input id="select-2" name="radio" type="radio">
-                                <label for="select-2" class="radio-label">Random Forest</label>
-                              </div>
+								<div class="radio">
+									<input id="select-4" name="radio" type="radio" value="GBM">
+									<label for="select-4" class="radio-label">GBM</label>
+								</div>
 
-                              <div class="radio">
-                                <input id="select-3" name="radio" type="radio">
-                                <label for="select-3" class="radio-label">SVM</label>
-                              </div>
+								<div class="radio">
+									<input id="select-5" name="radio" type="radio" value="NB">
+									<label for="select-5" class="radio-label">Naive Bayes</label>
+								</div>
 
-                              <div class="radio">
-                                <input id="select-4" name="radio" type="radio">
-                                <label for="select-4" class="radio-label">GBM</label>
-                              </div>
+								<div class="radio">
+									<input id="select-6" name="radio" type="radio" value="NNET">
+									<label for="select-6" class="radio-label">Neural Network</label>
+								</div>
 
-                              <div class="radio">
-                                <input id="select-5" name="radio" type="radio">
-                                <label for="select-5" class="radio-label">Naive Bayes</label>
-                              </div>
-
-                              <div class="radio">
-                                <input id="select-6" name="radio" type="radio">
-                                <label for="select-6" class="radio-label">Neural Network</label>
-                              </div>
-
-                              <div class="radio">
-                                <input id="select-7" name="radio" type="radio">
-                                <label for="select-7" class="radio-label">optimized Ensemble model</label>
-                              </div>
+								<div class="radio">
+									<input id="select-7" name="radio" type="radio" value="OEM">
+									<label for="select-7" class="radio-label">optimized Ensemble model</label>
+								</div>
 
                             </div>
 
@@ -252,6 +259,117 @@
                           </div>
                         </div>
                       </li>
+					  -->
+					  
+					  													<li class="l-section section">
+														<div class="about">
+														<div id="model_opt">
+															<div class="radio-list">
+																<h2><div id="status3">Select a Model to train!</div></h2>
+																<div class="radio-list-cover">
+																	<div class="radio">
+																		<input id="select-1" name="radio" type="radio" value="LR" checked>
+																		<label for="select-1" class="radio-label">Logistic Regression</label>
+																	</div>
+																	<div class="radio">
+																		<input id="select-2" name="radio" type="radio" value="RF">
+																		<label for="select-2" class="radio-label">Random Forest</label>
+																	</div>
+																	
+																	<div class="radio">
+																		<input id="select-3" name="radio" type="radio" value="SVM">
+																		<label for="select-3" class="radio-label">SVM</label>
+																	</div>
+
+																	<div class="radio">
+																		<input id="select-4" name="radio" type="radio" value="GBM">
+																		<label for="select-4" class="radio-label">GBM</label>
+																	</div>
+
+																	<div class="radio">
+																		<input id="select-5" name="radio" type="radio" value="NB">
+																		<label for="select-5" class="radio-label">Naive Bayes</label>
+																	</div>
+
+																	<div class="radio">
+																		<input id="select-6" name="radio" type="radio" value="NNET">
+																		<label for="select-6" class="radio-label">Neural Network</label>
+																	</div>
+
+																	<div class="radio">
+																		<input id="select-7" name="radio" type="radio" value="OEM">
+																		<label for="select-7" class="radio-label">optimized Ensemble model</label>
+																	</div>
+																</div>
+																<div>
+																  <button id="show_perf">Start Building</button>
+																</div>
+															</div>
+															</div>
+															<div class="lds-dual-ring" id="building_inter">Training the model, Will be ready in a jiffy!!
+															</div>															
+															<div id="model_out" >
+															<h2 align="center"><b>Model Performance</b></h2>
+															<table class="table table-borderless table-responsive">
+																<thead>
+																	<tr class>
+																		<th scope="col">Model</th>
+																		<th scope="col">No Info Rate(%)</th>
+																		<th scope="col">Accuracy(%)</th>
+																		<th scope="col">Sensitivity(%)</th>
+																		<th scope="col">Specificity(%)</th>
+																		<th scope="col">Kappa(%)</th>
+																	</tr>
+																</thead>
+																<tbody id="normal_results">
+																	<tr>
+																		<th id="mod_nm" scope="row"></th>
+																		<td> 67.17% </td>
+																		<td> 79.82% </td>
+																		<td> 88.79% </td>
+																		<td> 61.47% </td>
+																		<td> 52.34% </td>
+																	</tr>
+																</tbody>
+																<tbody id="oem_results">
+																	<tr>
+																		<th scope="row">LR</th>
+																		<td> 67.17% </td>
+																		<td> 79.82% </td>
+																		<td> 88.79% </td>
+																		<td> 61.47% </td>
+																		<td> 52.34% </td>
+																	</tr>
+																	<tr>
+																		<th scope="row">NB</th>
+																		<td> 67.17% </td>
+																		<td> 75.98% </td>
+																		<td> 79.00% </td>
+																		<td> 60.56% </td>
+																		<td> 51.76% </td>
+																	</tr>
+																	<tr>
+																		<th scope="row">RF</th>
+																		<td> 67.17% </td>
+																		<td> 82.76% </td>
+																		<td> 89.79% </td>
+																		<td> 70.36% </td>
+																		<td> 65.47% </td>
+																	</tr>
+																	<tr class="table-active">
+																		<th scope="row">OEM</th>
+																		<td> 67.17% </td>
+																		<td> 95.03% </td>
+																		<td> 92.65% </td>
+																		<td> 94.37% </td>
+																		<td> 72.45% </td>
+																	</tr>
+																</tbody>
+															</table>
+															<button id="show_model_sel" align="right">Show Model Selection</button>
+															<!-- div for results-->
+															</div>
+														</div>
 
 
                       <li class="l-section section">
@@ -327,13 +445,7 @@
 
                           </div>
 
-                          </div>
-
-
-
-
-
-                        </div>
+   
                       </li>
 
 

@@ -1,157 +1,67 @@
-
-modelling_module<-function(DV,model_selection)
+modelling_module<-function(DV,model_selection,predictorClass)
 {
   library(pROC)
   library(caret)
   
-	train<-read.csv("C:/opencpuapp_ip/train_comp.csv")	
-
-	test<-read.csv("C:/opencpuapp_ip/test_comp.csv")
-	
-	drops <- c("X")
-	train<-train[ , !(names(train) %in% drops)]
-	test<-test[ , !(names(test) %in% drops)]	
+  train<-read.csv("C:/opencpuapp_ip/train_comp.csv")	
   
-  model_evaluations<-setNames(data.frame(matrix(ncol = 9, nrow = 9)), c("tpr","fpr","tnr","fnr","recall","precision","f1score","accuracy","roc"))
-  rownames(model_evaluations)<-c("lr","rf_rose","rf_over","rf_under","rf_both","gbm","svm","nn","nb")
+  test<-read.csv("C:/opencpuapp_ip/test_comp.csv")
   
-  k_stat_value<- function(fullmodel,train,test,flag){
-    n=10
-    model_iteration_train <- fullmodel
+  drops <- c("X")
+  train<-train[ , !(names(train) %in% drops)]
+  test<-test[ , !(names(test) %in% drops)]	
+  
+  model_evaluations<-setNames(data.frame(matrix(ncol = 9, nrow = 9)), 
+                              c("tpr","fpr","tnr","fnr","recall",
+                                "precision","f1score","accuracy","roc")
+                              )
+  rownames(model_evaluations)<-c("lr","rf_rose","rf_over","rf_under",
+                                 "rf_both","gbm","svm","nn","nb")
+  
+  k_stat_value<- function(fullmodel,train,test,pos){
     
-    #model_iteration_train <- step(fullmodel,k=3.8415)
-    
-    #Predictions
-    #pred_train_iteration = predict(model_iteration_train, newdata = train, type =  'response')
-    if(flag=="n"){
-    pred_train_iteration = as.numeric(predict(model_iteration_train, newdata = train,type = 'response'))
+    train_KStat <- train
+    if(model != 'svm')
+    {
+      train_KStat$pred <- predict(fullmodel, 
+                                  newdata = train,
+                                  type = 'response') 
     }
-    if(flag=="y"){
-    pred_train_iteration = as.numeric(predict(model_iteration_train, newdata = train))
+    else
+    {
+      train_KStat$pred <- predict(fullmodel, 
+                                  newdata = train,
+                                  type = 'prob')[,pos]
+      
+      levels(train_KStat$DV) <- c(1,0)
     }
-     train_KStat = train #90 rows
-    train_KStat$pred = pred_train_iteration
-    pred_train_iteration
-    summary(train)
-    KStat_train = subset(train_KStat, select = c('DV', 'pred'))
-    KStat_train = KStat_train[order(-KStat_train$pred), ]
-    KStat_train$row = seq(1, nrow(KStat_train), 1)
     
+    library(SDMTools)
+    optimum_threshold = optim.thresh(train_KStat$DV, train_KStat$pred)
+    thresh = optimum_threshold$`max.sensitivity+specificity`
+    print(thresh)
     
-    
-    
-    # ******************** AUC ********************
-    ROCR1_Iteration2 = ROCR::prediction(pred_train_iteration, train$DV)# to transform the input data into a standardized format
-    auctrain_Iteration2 = as.numeric(ROCR::performance( ROCR1_Iteration2, "auc")@y.values)#predictor evaluations
-    
-    temp=0
-    repeat{
-      a_iteration = as.numeric(floor(nrow(train_KStat) / n), 0)
-      
-      #Gains Table
-      KStat_train$flag<-sample(0, replace=TRUE, size=nrow(train_KStat))
-      
-      y=a_iteration
-      j=0
-      for(i in 1:n){
-        KStat_train$flag[(j+1):y]<-i
-        j=y
-        if(i==n & y<nrow(train_KStat))
-        {
-          KStat_train$flag[(y+1):nrow(train_KStat)]<-i
-        }
-        y=y+a_iteration
-        
-      }
-      
-      Responders = 0
-      
-      for (i in 1:n)
-      {
-        Responders[i] = sum(KStat_train$DV[KStat_train$flag == i])
-      }
-      
-      kstat = data.frame(Responders)
-      
-      ##Variables
-      for (i in 1:n)
-      {
-        kstat$Non_Responders[i] = (sum(KStat_train$flag == i) - kstat$Responders[i])
-      }
-      
-      kstat$Responders_Percentage = ((kstat$Responders) / sum(kstat$Responders)) *
-        100
-      
-      kstat$Non_Responders_Percentage = ((kstat$Non_Responders) / sum(kstat$Non_Responders)) *
-        100
-      
-      #*****Add the Risk indicator to the employee
-      ##R-Cumm
-      kstat$R_Cumm[n] = kstat$Responders_Percentage[nrow(kstat)]
-      
-      num = seq(n-1,1,-1)
-      
-      for (i in num)
-      {
-        kstat$R_Cumm[i] = kstat$R_Cumm[i + 1] + kstat$Responders_Percentage[i]
-      }
-      
-      ##NR-Cumm
-      
-      kstat$NR_Cumm[n] = kstat$Non_Responders_Percentage[nrow(kstat)]
-      
-      num = seq(n-1,1,-1)
-      
-      for (i in num)
-      {
-        kstat$NR_Cumm[i] = kstat$NR_Cumm[i + 1] + kstat$Non_Responders_Percentage[i]
-      }
-      
-      kstat$KS = round((kstat$NR_Cumm - kstat$R_Cumm), 2)
-      
-      num1 = seq(1,n,1)
-      
-      
-      kstat$Model_Lift[n] = 100
-      
-      for (i in num)
-      {
-        kstat$Model_Lift[i] = 100 - kstat$R_Cumm[i + 1]
-      }
-      
-      ##Decile determination
-      
-      for (i in num1)
-      {
-        if (kstat$KS[i + 1] > kstat$KS[i])
-        {
-          count = i + 1
-        }
-        else
-        {
-          break
-        }
-      }
-      
-      library(SDMTools)
-      optimum_threshold = optim.thresh(KStat_train$DV, KStat_train$pred)
-      thresh = optimum_threshold$`max.sensitivity+specificity`
-      print(n)
-      print(thresh)
-      if(temp==max(thresh))
-      {break}
-      temp=max(thresh)
-      n=n+10
-    }  
     return(thresh)
   }
-  
   
   evaluatemeasures <- function(DV,predicted_val,pred_roc){
     
     pred_f <- pred_roc
     library(EvaluationMeasures)
-    #EvalMetrics <- data.frame(metrics=c("tpr","fpr","tnr","fnr","recall","precision","f1score"),value=c(0,0,0,0,0,0,0))
+    library(pROC)
+    
+    if(!is.numeric(DV))
+    {
+      predicted_val <- as.character(predicted_val)
+      DV <- as.character(DV)
+      
+      flagPred <- predicted_val =="Yes"
+      dvPred <- DV =="Yes"
+      
+      predicted_val <- as.numeric(flagPred)
+      DV <- as.numeric(dvPred)
+    }
+    
     tpr<-EvaluationMeasures.TPR(Real = DV,Predicted = predicted_val, Positive = 1)
     fpr<-EvaluationMeasures.FPR(Real = DV,Predicted = predicted_val, Positive = 1)
     tnr<-EvaluationMeasures.TNR(Real = DV,Predicted = predicted_val, Positive = 1)
@@ -162,252 +72,301 @@ modelling_module<-function(DV,model_selection)
     Accuracy<-EvaluationMeasures.Accuracy(Real = DV,Predicted = predicted_val, Positive = 1)
     res = roc(as.numeric(DV), pred_f)
     plot_res <- plot(res)
+    print(table(DV,predicted_val))
     return(c(tpr,fpr,tnr,fnr,recall,precision,f1score,Accuracy,plot_res))
   }
   
-  
   variable_importance <- function(var_imp_mod,flag_svm){
     library(party)
-    if(flag_svm == "y"){
-      mod_type <- var_imp_mod
-      mod_imp <- varImp(mod_type,numTrees = 3000)
-      mod_temp <- mod_imp$importance
-      names <- c(rownames(mod_temp))
-      mod_temp$var_names <- names
-      rownames(mod_temp) <- NULL
-      mod_temp <- mod_temp[,c("var_names","Overall")]
-      mod_temp <- mod_temp[order(mod_temp$Overall,decreasing = TRUE),]
-      rownames(mod_temp) <- NULL
-      return(mod_temp)
-    }
-    else if(flag_svm == "not_app"){
+    library(caret)
+    
+    if(flag_svm == "not_app"){
       return()
     }
     else {
-      mod_type <- var_imp_mod
-      mod_imp <- varImp(mod_type,numTrees = 3000)
-      names <- c(rownames(mod_imp))
-      mod_imp$var_names <- names
-      rownames(mod_imp) <- NULL
-      mod_imp <- mod_imp[,c("var_names","Overall")]
-      mod_imp <- mod_imp[order(mod_imp$Overall,decreasing = TRUE),]
-      rownames(mod_imp) <- NULL
+      
+      var_imp_res <-data.frame(var_names = character(),
+                               Overall = double())
+      mod_imp <- varImp(var_imp_mod,numTrees = 3000)
+      
+      if(flag_svm != "y")
+      {
+        names <- rownames(mod_imp)
+        OverallScore <-mod_imp$Overall  
+      }
+      else
+      {
+        names <- rownames(mod_imp$importance)
+        OverallScore <- mod_imp$importance[,'Yes']
+      }
+      
+      combinedList <- list(var_names=names,Overall=OverallScore)
+      var_imp_res <- rbind(var_imp_res,combinedList)
+      mod_imp <- var_imp_res[order(var_imp_res$Overall,decreasing = TRUE),]
       return(mod_imp)
     }
   }
   
+  gbm_func <- function(train,test){
+    
+    train_gbm<-train
+    test_gbm<-test
+    
+    print("running GBM")
+    
+    library(gbm)
+    gbm_model = gbm(DV~.+0, 
+                    data=train_gbm, 
+                    shrinkage=0.01, 
+                    distribution = 'bernoulli', 
+                    cv.folds=5, 
+                    n.trees=3000, 
+                    verbose=F)
+    
+    predResult <- predFunction(gbm_model,train_gbm,test_gbm,positive_class)
+    
+    test_gbm <- predResult[[1]]
+    pred <- predResult[[2]]
+    
+    best.iter = gbm.perf(gbm_model, method="cv")
+    
+    model_evaluations["gbm",] <<- evaluatemeasures(test_gbm$DV,
+                                                   test_gbm$predicted,
+                                                   pred)
+    
+    print(model_evaluations["gbm",])
+    
+    important_variables<- variable_importance(gbm_model,"n")
+    
+    return (list(important_variables$var_names,na.omit(model_evaluations)))
+  }
+  
+  lr_func <- function(train,test){
+    
+    print("running LR")
+    
+    train_lr<-train
+    test_lr<-test
+    
+    lr_model <- glm (DV ~ ., 
+                     data =train_lr, 
+                     family = binomial)
+    
+    print(summary(lr_model))
+    
+    predResult <- predFunction(lr_model,train_lr,test_lr,positive_class)
+    
+    test_lr <- predResult[[1]]
+    pred <- predResult[[2]]
+    
+    model_evaluations["lr",] <- evaluatemeasures(test_lr$DV,
+                                                 test_lr$predicted,
+                                                 pred)
+    
+    print(model_evaluations["lr",])
+    important_variables <- variable_importance(lr_model,"n")
+    return (list(as.character(important_variables$var_names),
+                 na.omit(model_evaluations)))
+  }
+  
+  rf_func <- function(train,test){
+    print("running RF")
+    train_rf <-train
+    test_rf <- test
+    
+    library(randomForest)
+    library(ROSE)
+    
+    treeimp <- randomForest(DV ~ ., 
+                            data = train_rf, 
+                            ntrees=100,
+                            importance=T)
+    #Identifying threshold
+    print(summary(treeimp))
+    
+    predResult <- predFunction(treeimp,train_rf,test_rf,positive_class)
+    
+    test_rf <- predResult[[1]]
+    pred <- predResult[[2]]
+    
+    roc.curve(test_rf$DV, pred, plotit = F)
+    print(table(test_rf$DV,test_rf$predicted))
+    important_variables <- variable_importance(treeimp,"n")
+    print(important_variables)
+    
+    model_evaluations["rf",]<- evaluatemeasures(test_rf$DV,
+                                                test_rf$predicted,
+                                                pred)
+    
+    return (list(important_variables$var_names,na.omit(model_evaluations)))
+  }
+  
+  nb_func<- function(train,test){
+    
+    print("running NB")
+    train_nb<-train
+    test_nb<-test
+    
+    library(e1071)
+    Naive_Bayes_Model <- naiveBayes(as.factor(train_nb$DV) ~., 
+                                    data=train_nb)
+    
+    summary(Naive_Bayes_Model)
+    
+    predResult <- predFunction(lr_model,train_lr,test_lr,positive_class)
+    
+    test_lr <- predResult[[1]]
+    pred <- predResult[[2]]
+    
+    model_evaluations["nb",] <- evaluatemeasures( test_nb$DV,
+                                                  test_nb$predicted_nb,
+                                                  pred)
+    print(model_evaluations["nb",])
+    important_variables  <- variable_importance(Naive_Bayes_Model,"not_app")
+    
+    return (list(important_variables$var_names,na.omit(model_evaluations)))
+  }
+  
+  svm_func <- function(test,train){
+    print("running SVM")
+    train_svm<- train
+    test_svm<- test
+    
+    library(caret)
+    
+    trctrl <- trainControl(method = "cv", 
+                           number =5,
+                           classProbs = TRUE,
+                           savePredictions = 'final')
+    
+    set.seed(323)
+    
+    svm_radial <- train(DV ~., 
+                        data = train_svm, 
+                        method = "svmRadial",
+                        trControl=trctrl)
+    
+    predResult <- predFunction(svm_radial,train_svm,test_svm,positive_class)
+    
+    test_svm <- predResult[[1]]
+    pred <- predResult[[2]]
+    
+    model_evaluations["svm",] <- evaluatemeasures(test_svm$DV,
+                                                  test_svm$predicted,
+                                                  pred)
+    
+    important_variables  <- variable_importance(svm_radial,"y")
+    
+    return (list(as.character(important_variables$var_names),
+                 na.omit(model_evaluations)))
+  }
+  
+  oem_func<-function(train,test){
+    train_oem <- train
+    test_oem <- test
+    oem_results <- data.frame()
+    
+    lr_results <- lr_func(train_oem,test_oem)
+    nb_results <- nb_func(train_oem,test_oem)
+    rf_results <- rf_func(train_oem,test_oem)
+    
+    oem_results <- rbind(lr_results[2][[1]],
+                         rf_results[2][[1]],
+                         nb_results[2][[1]])
+    
+    selectedModel <- rownames(oem_results[which.max(oem_results$accuracy),])
+    
+    modelVariable <- paste(selectedModel,'results',sep = '_')
+    
+    return (get(modelVariable))
+  }
+  
+  predFunction <- function(modelInput,trainD,testD,posit_class){
+    
+    type <-""
+    negClass <- ""
+    if (model == "svm")
+    {
+      typeResp <- 'prob'
+    }
+    else
+    {
+      typeResp <- 'response'
+    }
+    
+    if(is.null(posit_class))
+    {
+      if(is.numeric(testD$DV))
+      {
+        posit_class <- 1 
+      }
+      else if(is.factor(testD$DV))
+      {
+        dvList <- tolower(unique(testD$DV))
+        if("yes" %in% dvList)
+        {
+          posit_class <- "yes"
+        }
+        else
+        {
+          posit_class <- names(which.max(table(testD$DV)))
+        }
+      }
+      positive_class <<- posit_class
+    }
+    if(posit_class==1)
+    {
+      negClass <- 0
+    }
+    else
+    {
+      uniqLvls <- as.character(unique(testD$DV))
+      negClass <- uniqLvls[uniqLvls != posit_class]
+    }
+    
+    threshold<-k_stat_value(modelInput,trainD,testD,posit_class)
+    
+    if(model != 'svm')
+    {
+      pred <- predict(modelInput, 
+                      newdata=testD,
+                      type = typeResp)  
+    }
+    else
+    {
+      pred <- predict(modelInput, 
+                      newdata=testD,
+                      type = typeResp)[,posit_class]
+    }
+    
+    testD$predicted[pred>max(threshold)] <- posit_class
+    testD$predicted[pred<=max(threshold)] <- negClass
+    
+    return(list(testD,pred))
+  }
   
   
   names(train)[names(train)==DV] <- "DV"
   names(test)[names(test)==DV] <- "DV"
-  train_gbm<-train
-  test_gbm<-test
-  ## checking for correlation
-  #cor(train_gbm)
   
-  if (model_selection == "select-4")
+  ##The class that needs to be predicted when the prob > threshold
+  positive_class <- predictorClass
+  
+  if(model=="svm")
   {
-    print("running GBM")
-    #install.packages("gbm")
-    library(gbm)
-    gbm_model = gbm(DV~.+0, data=train_gbm, 
-                    shrinkage=0.01, distribution = 'bernoulli', cv.folds=5, n.trees=3000, verbose=F)
-    #identifying threshold
-    threshold<-k_stat_value(gbm_model,train_gbm,test_gbm,"n")
-    
-    #head(train_gbm)
-    #summary(gbm_model)
-    best.iter = gbm.perf(gbm_model, method="cv")
-    ##best.iter
-    ##plot.gbm(gbm.model, 1, best.iter)
-    
-    ## predicting on the test dataset
-    
-    pred <- predict(gbm_model, newdata = test_gbm,type = 'response')
-    
-    ##install.packages("pROC")
-    library(pROC)
-    
-    #library(ROCR)
-    res = roc(test_gbm$DV, pred)
-    plot(res)
-    #auc(res)
-    
-    ##library(e1071)
-    ##install.packages("caret")
-    ##library(caret)
-    ##fitControl = trainControl(method="cv", number=5, returnResamp = "none")
-    
-    ##train_gbm$DV = as.factor(train_gbm$DV)
-    ##model2 = train(DV~.+0, data=train_gbm, method="gbm",
-    ##               distribution="bernoulli", trControl=fitControl, verbose=F, 
-    ##               tuneGrid=data.frame(.n.trees=best.iter, .shrinkage=0.01, .interaction.depth=1, 
-    ##                                   .n.minobsinnode=1))
-    
-    ## prediction
-    ##pred1 = predict(model2, newdata = test_gbm)
-    
-    ##test_gbm$DV = as.factor(test_gbm$DV)
-    
-    ## performance evaluation
-    ##test_gbm$pred2 = as.numeric(pred)
-    
-    
-    
-    #res1 = roc(test_gbm$DV, test_gbm$pred2)
-    #plot(res1)
-    #auc(res1)
-    test_gbm$pred2[pred>max(threshold)] <- as.numeric(1)
-    test_gbm$pred2[pred<=max(threshold)] <- as.numeric(0)
-    ##confusionMatrix(model2)
-    
-    ##confusionMratrix(pred1,test_gbm$DV)
-    
-    #calculating logloss
-    #mResults = predict(model2, test_gbm, na.action = na.pass, type = "prob")
-    #mResults$obs = test_gbm$diabetes
-    #head(mResults)
-    
-    #mnLogLoss(mResults, lev = levels(mResults$obs))
-    #test_gbm$DV<- as.numeric(test_gbm$DV) -1
-    model_evaluations["gbm",] <- evaluatemeasures(test_gbm$DV,test_gbm$pred2,pred)
-    important_variables<- variable_importance(gbm_model,"n")
-  }
-  if (model_selection == "select-1")
-  {
-    print("running LR")
-    train_lr<-train
-    test_lr<-test
-    lr_model <- glm (DV ~ ., data =train_lr, family = binomial)
-    #summary(model)
-    threshold<-k_stat_value(lr_model,train_lr,test_lr,"n")
-    pred <- predict(lr_model, newdata=test_lr,
-                    type = 'response')
-    test_lr$predictedtype[pred>max(threshold)] <- as.numeric(1)
-    test_lr$predictedtype[pred<=max(threshold)] <- as.numeric(0)
-    
-    model_evaluations["lr",] <- evaluatemeasures(test_lr$DV,test_lr$predictedtype,pred)
-    important_variables <- variable_importance(lr_model,"n")
-  }
-  if (model_selection == "select-5")
-  {
-    print("running NB")
-    train_nb<-train
-    test_nb<-test
-    ##install.packages("naivebayes")
-    library(e1071)
-    Naive_Bayes_Model = naiveBayes(as.factor(train_nb$DV) ~., data=train_nb)
-    #What does the model say? Print the model summary
-    summary(Naive_Bayes_Model)
-    #Identifying threshold
-    
-    #Prediction on the dataset
-    test_nb$NB_Predictions=predict(Naive_Bayes_Model,newdata=test_nb)
-    test_nb$NB_Predictions<-as.numeric(test_nb$NB_Predictions)-1
-    test_nb$DV<-as.numeric(test_nb$DV)
-    #Confusion matrix to check accuracy
-    #table(NB_Predictions,test_nb$DV)
-    pred <- as.numeric(test_nb$NB_Predictions)
-    
-    model_evaluations["nb",] <- evaluatemeasures( test_nb$DV,test_nb$NB_Predictions,pred)
-    important_variables  <- variable_importance(Naive_Bayes_Model,"not_app")
+    if(is.numeric(train$DV))
+    {
+      train$DV <- as.factor(train$DV)
+      test$DV <- as.factor(test$DV)
+      
+      levels(train$DV) <- c('Yes','No')
+      levels(test$DV) <- c('Yes','No')
+      positive_class <- "Yes"
+    }
   }
   
-  if (model_selection == "select-2")  {
-    print("running RF")
-    train_rf <-train
-    test_rf <- test
-    library(randomForest)
-    library(ROSE)
-    
-    
-    treeimp <- randomForest(DV ~ ., data = train_rf, ntrees=100,importance=T)
-    #Identifying threshold
-    threshold<-k_stat_value(treeimp,train_rf,test_rf,"n")
-    pred.treeimb <- predict(treeimp, newdata = test_rf)
-    roc.curve(test_rf$DV, pred.treeimb, plotit = F)
-    important_variables <- variable_importance(treeimp,"n")
-    #over sampling
-    # data_balanced_over <- ovun.sample(DV ~ ., data = train_rf, method = "over",)$data
-    # 
-    # table(data_balanced_over$DV)
-    # #undersampling
-    # data_balanced_under <- ovun.sample(DV ~ ., data = train_rf, method = "under", seed = 1)$data
-    # table(data_balanced_under$DV)
-    # 
-    # #both
-    # data_balanced_both <- ovun.sample(DV ~ ., data = train_rf, method = "both", p=0.5, seed = 1)$data                            
-    # table(data_balanced_both$DV)
-    # 
-    # #rose
-    # data.rose <- ROSE(DV ~ ., data = train_rf, seed = 1)$data
-    # table(data.rose$cls)
-    # library(rpart)
-    # #build decision tree models
-    # tree.rose <- rpart(DV ~ ., data = data.rose)
-    # tree.over <- rpart(DV ~ ., data = data_balanced_over)
-    # tree.under <- rpart(DV ~ ., data = data_balanced_under)
-    # tree.both <- rpart(DV ~ ., data = data_balanced_both)
-    # 
-    # #make predictions on unseen data
-    # pred.tree.rose <- predict(tree.rose, newdata = test_rf)
-    # pred.tree.over <- predict(tree.over, newdata = test_rf)
-    # pred.tree.under <- predict(tree.under, newdata = test_rf)
-    # pred.tree.both <- predict(tree.both, newdata = test_rf)
-    # 
-    # test_rf$predicted_tree_both[pred.tree.both>max(threshold)] <- as.numeric(1)
-    # test_rf$predicted_tree_both[pred.tree.both<=max(threshold)] <- as.numeric(0)
-    # 
-    # model_evaluations["rf_both",] <- evaluatemeasures(test_rf$DV,test_rf$predicted_tree_both,pred.tree.both)
-    # rf_both_imp <- variable_importance(tree.both,"n")
-    # 
-    # test_rf$predicted_tree_over[pred.tree.over>max(threshold)] <- as.numeric(1)
-    # test_rf$predicted_tree_over[pred.tree.over<=max(threshold)] <- as.numeric(0)
-    # 
-    # model_evaluations["rf_over",] <- evaluatemeasures(test_rf$DV,test_rf$predicted_tree_over,pred.tree.over)
-    # rf_over_imp <- variable_importance(tree.over,"n")
-    # 
-    # test_rf$predicted_tree_under[pred.tree.under>max(threshold)] <- as.numeric(1)
-    # test_rf$predicted_tree_under[pred.tree.under<=max(threshold)] <- as.numeric(0)
-    # 
-    # model_evaluations["rf_under",] <- evaluatemeasures(test_rf$DV,test_rf$predicted_tree_under,pred.tree.under)
-    # rf_under_imp  <- variable_importance(tree.under,"n")
-    # 
-    # test_rf$predicted_tree_rose[pred.tree.rose>max(threshold)] <- as.numeric(1)
-    # test_rf$predicted_tree_rose[pred.tree.rose<=max(threshold)] <- as.numeric(0)
-    # 
-    # model_evaluations["rf_rose",] <- evaluatemeasures(test_rf$DV,test_rf$predicted_tree_rose,pred.tree.rose)
-    # rf_rose_imp <- variable_importance(tree.rose,"n")
-  }
-  if (model_selection == "select-3")
-  {
-    print("running SVM")
-    train_svm<- train
-    test_svm<- test
-    #library(caret)
-    trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
-    
-    set.seed(323)
-    
-    svm_radial <- train(DV ~., data = train_svm, method = "svmRadial",
-                        trControl=trctrl,
-                        preProcess = c("center", "scale"),
-                        tuneLength = 10)
-    #Identifying threshold
-    threshold<-k_stat_value(svm_radial,train_svm,test_svm,"y")
-    
-    test_pred <- as.numeric(predict(svm_radial,newdata = test_svm))
-    test_pred <- predict(svm_radial,newdata = test_svm)
-    
-    #confusionMatrix(test_svm$predictedtype,test_svm$DV)
-    
-    test_svm$predictedtype[test_pred>max(threshold)] <- as.numeric(1)
-    test_svm$predictedtype[test_pred<=max(threshold)] <- as.numeric(0)
-    
-    model_evaluations["svm",] <- evaluatemeasures(test_svm$DV,test_svm$predictedtype,test_pred)
-    important_variables  <- variable_importance(svm_radial,"y")
-  }
+  fn <- match.fun(paste(model,'func',sep='_'))
+  vars_imp <- fn(train,test)
   
-  list(important_variables$var_names)
-
- }
+  return (vars_imp)
+}

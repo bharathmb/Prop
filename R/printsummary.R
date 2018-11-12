@@ -4,7 +4,7 @@
 #' 
 #' @export
 #' @param df_full some object or dataset
-printsummary <- function(df_full, dvname){
+printsummary <- function(df_full, dvname, preddv){
   #override default 
   options(max.print=99999999);
   options(width=120);

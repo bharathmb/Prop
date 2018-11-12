@@ -30,7 +30,8 @@ $(document).ready(function(){
     //perform the request
     var req = ocpu.call("printsummary", {
       "df_full" : mydata,
-	"dvname" : dvname
+	"dvname" : dvname,
+	"preddv" : preddv
     }, function(session){
       session.getConsole(function(output){
         $("#output code").text(output);	
@@ -52,7 +53,7 @@ $(document).ready(function(){
 			{
 				//alert("inside Add Options");
 				var vars;
-				var req = ocpu.call("imp_var_list", {	"target.var.name" : dvname	}, 
+				var req = ocpu.call("imp_var_list", {	"target.var.name" : dvname}, 
 			function(session){
 				session.getObject(function(data){
 				//$("#output code").text(data);	
@@ -121,7 +122,7 @@ $(document).ready(function(){
 				
 				//var req = $("#plotdiv").rplot("randomplot", {	nfield : 100, distfield : "normal" , title : data})
 				
-				var req = $("#plotdiv").rplot("variable_profiling_function", {dv : dvname, var: tar});
+				var req = $("#plotdiv").rplot("variable_profiling_function", {dv : dvname, var: tar, ds: data-split});
 				
 				//if R returns an error, alert the error message
 				req.fail(function(){
@@ -156,6 +157,16 @@ $(document).ready(function(){
 	
 	
 	if(!dvname){
+      alert("Please provide DV name.");
+      return;
+    }
+	
+	if(!preddv){
+      alert("Please provide DV name.");
+      return;
+    }
+	
+	if(!data-split){
       alert("Please provide DV name.");
       return;
     }

@@ -1,4 +1,4 @@
-variable_profiling_function  <- function(dv, var) {
+variable_profiling_function  <- function(dv, var, ds) {
   
   library(ggplot2)
   
@@ -9,7 +9,7 @@ variable_profiling_function  <- function(dv, var) {
   
   ##TRAIN & TEST SPLIT
   ## 80% of the sample size
-  smp_size <- floor(0.8 * nrow(dat))
+  smp_size <- floor((ds/100) * nrow(dat))
   
   ## set the seed to make your partition reproducible
   set.seed(123)
