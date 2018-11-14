@@ -5,6 +5,14 @@
 #' @export
 #' @param df_full some object or dataset
 printsummary <- function(df_full, dvname, preddv){
+  
+  library(car)
+library(plyr)
+library(caret)
+library(dplyr)
+library(caTools)
+library(glmnet)
+  
   #override default 
   options(max.print=99999999);
   options(width=120);
