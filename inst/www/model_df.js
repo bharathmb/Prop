@@ -83,7 +83,7 @@ $("#show_perf").on("click", function(){
 		
 		//alert(isChecked);
 
-		
+alert(dvname);	alert(isChecked);alert(preddv);
     //perform the request
     var req = ocpu.call("modelling_module", {
       "DV" : dvname, "model_selection" :  isChecked, "predictorClass" : preddv
