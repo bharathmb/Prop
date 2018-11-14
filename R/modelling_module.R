@@ -67,7 +67,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
     
     if(is.numeric(train$DV))
     {
-      if(model=="svm")
+      if(model=="SVM")
       {
         train$DV <- as.factor(train$DV)
         test$DV <- as.factor(test$DV)
@@ -111,7 +111,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
       train$DV <- trimws(as.character(train$DV))
       test$DV <- trimws(as.character(test$DV))
       
-      if(model=='svm')
+      if(model=='SVM')
       {
         positChangedClass <- make.names(positive_class)
         negChangedClass <- make.names(negClass)
@@ -288,14 +288,14 @@ modelling_module<-function(DV,model_selection,predictorClass)
   k_stat_value<- function(fullmodel,train,test,pos,type){
     
     train_KStat <- train
-    if(! (model %in% c('svm','nb')))
+    if(! (model %in% c('SVM','NB')))
     {
       
       train_KStat$pred <- predict(fullmodel, 
                                   newdata = train,
                                   type = 'response') 
     }
-    else if(model == "nb")
+    else if(model == "NB")
     {
       train_KStat$pred <- predict(fullmodel, 
                                   newdata = train,
@@ -307,9 +307,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
                                   newdata = train,
                                   type = 'prob')[,pos]
       
-      print(sample(train_KStat$pred,5))
       levels(train_KStat$DV) <- c(1,0)
-      print(sample(train_KStat$DV,5))
     }
     
     library(SDMTools)
@@ -352,14 +350,14 @@ modelling_module<-function(DV,model_selection,predictorClass)
     }
   }
   
-  gbm_func <- function(train,test,flagInp){
+  GBM_func <- function(train,test,flagInp){
     
     train_gbm<-train
     test_gbm<-test
     
     if(flagInp)
     {
-      model <<- "gbm"
+      model <<- "GBM"
     }
     
     print("running GBM")
@@ -402,7 +400,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
     }
   }
   
-  lr_func <- function(train,test,flagInp){
+  LR_func <- function(train,test,flagInp){
     
     print("running LR")
     
@@ -411,7 +409,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
     
     if(flagInp)
     {
-      model <<- "lr"
+      model <<- "LR"
     }
     
     lr_model <- glm (DV ~ ., 
@@ -448,14 +446,14 @@ modelling_module<-function(DV,model_selection,predictorClass)
     
   }
   
-  rf_func <- function(train,test,flagInp){
+  RF_func <- function(train,test,flagInp){
     print("running RF")
     train_rf <-train
     test_rf <- test
     
     if(flagInp)
     {
-      model <<- "rf"
+      model <<- "RF"
     }
     
     library(randomForest)
@@ -495,14 +493,14 @@ modelling_module<-function(DV,model_selection,predictorClass)
     }
   }
   
-  nb_func<- function(train,test,flagInp){
+  NB_func<- function(train,test,flagInp){
     
     print("running NB")
     train_nb<-train
     test_nb<-test
     if(flagInp)
     {
-      model <<- "nb"
+      model <<- "NB"
     }
     
     library(e1071)
@@ -537,14 +535,14 @@ modelling_module<-function(DV,model_selection,predictorClass)
     }
   }
   
-  svm_func <- function(test,train,flagInp){
+  SVM_func <- function(test,train,flagInp){
     print("running SVM")
     train_svm<- train
     test_svm<- test
     
     if(flagInp)
     {
-      model <<- "svm"
+      model <<- "SVM"
     }
     
     library(caret)
@@ -587,7 +585,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
     }
   }
   
-  oem_func<-function(train,test,flagInp){
+  OEM_func<-function(train,test,flagInp){
     train_oem <- train
     test_oem <- test
     oem_results <- data.frame()
@@ -596,9 +594,9 @@ modelling_module<-function(DV,model_selection,predictorClass)
     
     flag <- T
     
-    lr_results <- lr_func(train_oem,test_oem,flag)
-    nb_results <- nb_func(train_oem,test_oem,flag)
-    rf_results <- rf_func(train_oem,test_oem,flag)
+    lr_results <- LR_func(train_oem,test_oem,flag)
+    nb_results <- NB_func(train_oem,test_oem,flag)
+    rf_results <- RF_func(train_oem,test_oem,flag)
     
     oem_results <- rbind(lr_results[2][[1]],
                          rf_results[2][[1]],
@@ -619,7 +617,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
   predFunction <- function(modelInput,trainD,testD,posit_class){
     type <-""
     negClass <- ""
-    if (model == "svm")
+    if (model == "SVM")
     {
       typeResp <- 'prob'
     }
@@ -662,7 +660,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
     
     threshold<-k_stat_value(modelInput,trainD,testD,posit_class)
     
-    if(! (model %in% c('svm','nb')))
+    if(! (model %in% c('SVM','NB')))
     {
       
       pred <- predict(modelInput, 
@@ -691,6 +689,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
   
   ##The class that needs to be predicted when the prob > threshold
   positive_class <- predictorClass
+  model <- model_selection
   
   oemFlag <- F
   
