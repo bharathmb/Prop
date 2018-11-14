@@ -3,21 +3,6 @@ modelling_module<-function(DV,model_selection,predictorClass)
   library(pROC)
   library(caret)
   
-  train<-read.csv("C:/opencpuapp_ip/train_comp.csv")	
-  
-  test<-read.csv("C:/opencpuapp_ip/test_comp.csv")
-  
-  drops <- c("X")
-  train<-train[ , !(names(train) %in% drops)]
-  test<-test[ , !(names(test) %in% drops)]	
-  
-  model_evaluations<-setNames(data.frame(matrix(ncol = 9, nrow = 9)), 
-                              c("tpr","fpr","tnr","fnr","recall",
-                                "precision","f1score","accuracy","roc")
-                              )
-  rownames(model_evaluations)<-c("lr","rf_rose","rf_over","rf_under",
-                                 "rf_both","gbm","svm","nn","nb")
-  
   processOutput <- function(vars,metrics,graph,oemInd){
     library(dplyr)
     
@@ -63,7 +48,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
     return (list(variables,metricOutput))
   }
   
-  setUpFunction<- function(train,test){
+  setUpFunction<- function(train,test,positive_class,model){
     
     if(is.numeric(train$DV))
     {
@@ -74,7 +59,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
         
         levels(train$DV) <- c('No','Yes')
         levels(test$DV) <- c('No','Yes')
-        positive_class <<- "Yes"
+        positive_class <- "Yes"
       }
       else
       {
@@ -98,7 +83,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
             test$DV[test$DV == min(custlevels)] <- 0
             test$DV[test$DV == max(custlevels)] <- 1
             
-            positive_class <<- 1
+            positive_class <- 1
           }
         }
       }
@@ -125,7 +110,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
         test$DV[test$DV == negClass] <- negChangedClass
         test$DV <- as.factor(test$DV)
         
-        positive_class <<- positChangedClass
+        positive_class <- positChangedClass
         
       }
       else
@@ -141,11 +126,11 @@ modelling_module<-function(DV,model_selection,predictorClass)
         train$DV <- as.numeric(train$DV)
         test$DV <- as.numeric(test$DV)
         
-        positive_class <<- 1
+        positive_class <- 1
       }
     }
     
-    return(list(train,test))
+    return(list(train,test,positive_class))
   }
   
   evaluatemeasures <- function(testData){
@@ -285,7 +270,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
     return (hitMissRt)
   }
   
-  k_stat_value<- function(fullmodel,train,test,pos,type){
+  k_stat_value<- function(fullmodel,train,test,pos,model){
     
     train_KStat <- train
     if(! (model %in% c('SVM','NB')))
@@ -350,15 +335,10 @@ modelling_module<-function(DV,model_selection,predictorClass)
     }
   }
   
-  GBM_func <- function(train,test,flagInp){
+  GBM_func <- function(train,test,flagInp,positive_class){
     
     train_gbm<-train
     test_gbm<-test
-    
-    if(flagInp)
-    {
-      model <<- "GBM"
-    }
     
     print("running GBM")
     
@@ -371,7 +351,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
                     n.trees=3000, 
                     verbose=F)
     
-    predResult <- predFunction(gbm_model,train_gbm,test_gbm,positive_class)
+    predResult <- predFunction(gbm_model,train_gbm,test_gbm,positive_class,"GBM")
     
     test_gbm <- predResult
     
@@ -400,17 +380,12 @@ modelling_module<-function(DV,model_selection,predictorClass)
     }
   }
   
-  LR_func <- function(train,test,flagInp){
+  LR_func <- function(train,test,flagInp,positive_class){
     
     print("running LR")
     
     train_lr<-train
     test_lr<-test
-    
-    if(flagInp)
-    {
-      model <<- "LR"
-    }
     
     lr_model <- glm (DV ~ ., 
                      data =train_lr, 
@@ -418,7 +393,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
     
     print(summary(lr_model))
     
-    predResult <- predFunction(lr_model,train_lr,test_lr,positive_class)
+    predResult <- predFunction(lr_model,train_lr,test_lr,positive_class,"LR")
     
     test_lr <- predResult
     
@@ -446,16 +421,11 @@ modelling_module<-function(DV,model_selection,predictorClass)
     
   }
   
-  RF_func <- function(train,test,flagInp){
+  RF_func <- function(train,test,flagInp,positive_class){
     print("running RF")
     train_rf <-train
     test_rf <- test
-    
-    if(flagInp)
-    {
-      model <<- "RF"
-    }
-    
+
     library(randomForest)
     library(ROSE)
     
@@ -466,7 +436,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
     #Identifying threshold
     print(summary(treeimp))
     
-    predResult <- predFunction(treeimp,train_rf,test_rf,positive_class)
+    predResult <- predFunction(treeimp,train_rf,test_rf,positive_class,"RF")
     
     test_rf <- predResult
     
@@ -493,23 +463,19 @@ modelling_module<-function(DV,model_selection,predictorClass)
     }
   }
   
-  NB_func<- function(train,test,flagInp){
+  NB_func<- function(train,test,flagInp,positive_class){
     
     print("running NB")
     train_nb<-train
     test_nb<-test
-    if(flagInp)
-    {
-      model <<- "NB"
-    }
-    
+ 
     library(e1071)
     Naive_Bayes_Model <- naiveBayes(as.factor(train_nb$DV) ~., 
                                     data=train_nb)
     
     summary(Naive_Bayes_Model)
     
-    predResult <- predFunction(Naive_Bayes_Model,train_nb,test_nb,positive_class)
+    predResult <- predFunction(Naive_Bayes_Model,train_nb,test_nb,positive_class,"NB")
     
     test_nb <- predResult
     
@@ -535,15 +501,10 @@ modelling_module<-function(DV,model_selection,predictorClass)
     }
   }
   
-  SVM_func <- function(test,train,flagInp){
+  SVM_func <- function(test,train,flagInp,positive_class){
     print("running SVM")
     train_svm<- train
     test_svm<- test
-    
-    if(flagInp)
-    {
-      model <<- "SVM"
-    }
     
     library(caret)
     
@@ -559,7 +520,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
                         method = "svmRadial",
                         trControl=trctrl)
     
-    predResult <- predFunction(svm_radial,train_svm,test_svm,positive_class)
+    predResult <- predFunction(svm_radial,train_svm,test_svm,positive_class,"SVM")
     
     test_svm <- predResult
     
@@ -585,7 +546,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
     }
   }
   
-  OEM_func<-function(train,test,flagInp){
+  OEM_func<-function(train,test,flagInp,positive_class){
     train_oem <- train
     test_oem <- test
     oem_results <- data.frame()
@@ -594,9 +555,9 @@ modelling_module<-function(DV,model_selection,predictorClass)
     
     flag <- T
     
-    lr_results <- LR_func(train_oem,test_oem,flag)
-    nb_results <- NB_func(train_oem,test_oem,flag)
-    rf_results <- RF_func(train_oem,test_oem,flag)
+    lr_results <- LR_func(train_oem,test_oem,flag,positive_class)
+    nb_results <- NB_func(train_oem,test_oem,flag,positive_class)
+    rf_results <- RF_func(train_oem,test_oem,flag,positive_class)
     
     oem_results <- rbind(lr_results[2][[1]],
                          rf_results[2][[1]],
@@ -614,14 +575,14 @@ modelling_module<-function(DV,model_selection,predictorClass)
     return (output)
   }
   
-  predFunction <- function(modelInput,trainD,testD,posit_class){
+  predFunction <- function(modelInput,trainD,testD,posit_class,model){
     type <-""
     negClass <- ""
     if (model == "SVM")
     {
       typeResp <- 'prob'
     }
-    else if(model == "nb"){
+    else if(model == "NB"){
       typeResp <- 'raw'
     }
     else
@@ -646,7 +607,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
           posit_class <- names(which.max(table(testD$DV)))
         }
       }
-      positive_class <<- posit_class
+      positive_class <- posit_class
     }
     if(posit_class==1)
     {
@@ -658,7 +619,7 @@ modelling_module<-function(DV,model_selection,predictorClass)
       negClass <- uniqLvls[uniqLvls != posit_class]
     }
     
-    threshold<-k_stat_value(modelInput,trainD,testD,posit_class)
+    threshold<-k_stat_value(modelInput,trainD,testD,posit_class,model)
     
     if(! (model %in% c('SVM','NB')))
     {
@@ -682,24 +643,41 @@ modelling_module<-function(DV,model_selection,predictorClass)
     return(testD)
   }
   
+  train<-read.csv("C:/opencpuapp_ip/train_comp.csv")	
   
+  test<-read.csv("C:/opencpuapp_ip/test_comp.csv")
+  
+  drops <- c("X")
+  train<-train[ , !(names(train) %in% drops)]
+  test<-test[ , !(names(test) %in% drops)]	
+  
+  model_evaluations<-setNames(data.frame(matrix(ncol = 9, nrow = 9)), 
+                              c("tpr","fpr","tnr","fnr","recall",
+                                "precision","f1score","accuracy","roc")
+                              )
+  rownames(model_evaluations)<-c("lr","rf_rose","rf_over","rf_under",
+                                 "rf_both","gbm","svm","nn","nb")
   
   names(train)[names(train)==DV] <- "DV"
   names(test)[names(test)==DV] <- "DV"
   
   ##The class that needs to be predicted when the prob > threshold
-  positive_class <- predictorClass
+  positive_class <- as.numeric(predictorClass)
   model <- model_selection
-  
+
   oemFlag <- F
   
-  dataUpdated <- setUpFunction(train,test)
+  dataUpdated <- setUpFunction(train,test,positive_class,model)
   train <- dataUpdated[[1]]
   test <- dataUpdated[[2]]
+  positive_class <- dataUpdated[[3]]
+  
   rm(dataUpdated)
   
-  fn <- match.fun(paste(model,'func',sep='_'))
-  vars_imp <- fn(train,test)
+  #fn <- match.fun(paste(model,'func',sep='_'))
+  fn <- get(paste(model,'func',sep='_'))
+  vars_imp <- fn(train,test,oemFlag,positive_class)
   
   return (vars_imp)
 }
+
