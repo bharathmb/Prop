@@ -228,7 +228,7 @@ for(i in names(df))
   }
 }
 
-df1<-df%>%data.frame()
+df1<-as.data.frame(df)
 
 #creating correlation matrix for continuous variables
 if(length(df1)>1)
