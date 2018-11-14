@@ -8,32 +8,18 @@ $(document).ready(function(){
 	$('#oem_results').hide();
 	
 	var model_persist = "";
-	//on-input function to display data split message
-	$("#data-split").on("input", function() {
-		var train_split = $("#data-split").val();
-		var test_split = 100 - train_split;
-		$(".split_msg_out").html("")
-		$(".split_msg_out").append("Your data will be split in the ratio " + train_split +"% training & "+test_split+ "% test");
-	});
-	
-	//$( "#data-split" ).on("keydown", function( event ) {
-	//	$(".split_msg_out").html("");
-	//});
-	
-	$("#data-split").keyup(function(event) {
-		if(event.keyCode == 8)
-		{
-			$(".split_msg_out").html("");
-		}
-	});
   
 $("#show_perf").on("click", function(){
     
 	//alert("inside Ensemble Model....");
 	
 	    $("#show_perf").attr("disabled", "disabled");  
+		
+		$('#model_opt').hide();
+		
+		$('#building_inter').show();
 	  
-	   $("#status3").text("Setting up Train & Test...");
+	   $("#building_inter").text("Setting up Train & Test...");
 	   
 	   
 	
@@ -41,7 +27,7 @@ $("#show_perf").on("click", function(){
 	var dvname=$("#dvname").val()
 	var preddv=$("#preddv").val()
 	
-	var isChecked=""
+	var isChecked="";
 	
 	if($('#LR').prop('checked')==true)
 		{
@@ -67,8 +53,32 @@ $("#show_perf").on("click", function(){
 		 isChecked="OEM"
 		}
 		
+		$('#building_inter').show();
+	    $("#building_inter").text("Training the Model... Will be ready in a jiffy!");
 		
-	    $("#status3").text("Training the Model... Will be ready in a jiffy!");
+		//alert(isChecked);		
+		//$('#building_inter').hide();
+		//$('#model_out').show();
+		//$('#normal_results').show();
+		//var table = document.getElementById("results_table").tBodies[0];
+		//alert("1");
+		//table.rows[0].cells[0].innerHTML=isChecked;
+		//table.rows[0].cells[1].innerHTML=output[1];
+		//table.rows[0].cells[2].innerHTML=output[2];
+		//table.rows[0].cells[3].innerHTML=output[3];
+		//table.rows[0].cells[4].innerHTML=output[4];
+		
+			//Signififcant Variable List
+			
+			//sig_var=["hi","hello"]
+			//for (var i=0; i < sig_var.length;++i)
+			//	{	
+			//		var node = document.createElement("LI");           		// create the a <li> node			
+			//		var textnode = document.createTextNode(sig_var[i]);         // Create a text node
+			//		node.appendChild(textnode);                              // Append the text to <li>
+			//		document.getElementById("sig_list").appendChild(node);     // Append <li> to <ul> with id="myList"
+			//	}
+				
 		
 		
 		//alert(isChecked);
@@ -78,9 +88,69 @@ $("#show_perf").on("click", function(){
     var req = ocpu.call("modelling_module", {
       "DV" : dvname, "model_selection" :  isChecked, "predictorClass" : preddv
     }, function(session){
-		$("#building_inter").show().delay(1000).fadeOut(100,showModelResults);
-		//get results and display
-		$("#status3").text("Model Completed! Go check the results now");
+		session.getConsole(function(full_output){			
+			$("#building_inter").show().delay(1000).fadeOut(100,showModelResults);
+			
+			var sig_var=full_output[1]
+			var output=full_output[2]			
+			
+			if(isChecked=="OEM")
+			{	
+				var table = document.getElementById("results_table").tbodies[1];
+				var cur_op=output[1];
+				table.rows[0].cells[1].innerHTML=cur_op[1];
+				table.rows[0].cells[2].innerHTML=cur_op[2];
+				table.rows[0].cells[3].innerHTML=cur_op[3];
+				table.rows[0].cells[4].innerHTML=cur_op[4];
+				var cur_op=output[2];
+				table.rows[0].cells[1].innerHTML=cur_op[1];
+				table.rows[0].cells[2].innerHTML=cur_op[2];
+				table.rows[0].cells[3].innerHTML=cur_op[3];
+				table.rows[0].cells[4].innerHTML=cur_op[4];
+				var cur_op=output[3];
+				table.rows[0].cells[1].innerHTML=cur_op[1];
+				table.rows[0].cells[2].innerHTML=cur_op[2];
+				table.rows[0].cells[3].innerHTML=cur_op[3];
+				table.rows[0].cells[4].innerHTML=cur_op[4];
+				var cur_op=output[4];
+				table.rows[0].cells[1].innerHTML=cur_op[1];
+				table.rows[0].cells[2].innerHTML=cur_op[2];
+				table.rows[0].cells[3].innerHTML=cur_op[3];
+				table.rows[0].cells[4].innerHTML=cur_op[4];
+			}
+			else
+			{
+				var table = document.getElementById("results_table").tbodies[0];
+				table.rows[0].cells[0].innerHTML=isChecked;
+				table.rows[0].cells[1].innerHTML=output[1];
+				table.rows[0].cells[2].innerHTML=output[2];
+				table.rows[0].cells[3].innerHTML=output[3];
+				table.rows[0].cells[4].innerHTML=output[4];
+				//var row = table.insertRow(0);
+				//var cell1 = row.insertCell(0);
+				//var cell2 = row.insertCell(1);
+				//cell1.innerHTML = "NEW CELL1";
+				//cell2.innerHTML = "NEW CELL2";
+			}
+			
+			//Signififcant Variable List
+			for (var i=0; i < sig_var.length;++i)
+				{					
+					var node = document.createElement("LI");           		// create the a <li> node
+					var textnode = document.createTextNode(sig_var[i]);         // Create a text node
+					node.appendChild(textnode);                              // Append the text to <li>
+					document.getElementById("sig_list").appendChild(node);     // Append <li> to <ul> with id="myList"
+				}
+				
+				
+			plot_rocr_graph();
+			
+		
+			//get results and display
+			$("#building_inter").text("Model Completed! Go check the results now");
+		    }).fail(function(){
+			alert("Server error: " + req.responseText);
+			});  
     });
     
     //if R returns an error, alert the error message
@@ -169,6 +239,28 @@ $("#show_perf").on("click", function(){
 		
 		});
 	});
+  
+  
+			//Adding Code for ROCR
+				function plot_rocr_graph()
+			{
+				//alert("inside Plot graph");
+				
+				//var req = $("#plotdiv1").rplot("randomplot", {	nfield : 100, distfield : "normal"})
+				
+				var req = $("#plotdiv2").rplot("load_graph");
+				
+				//if R returns an error, alert the error message
+				req.fail(function(){
+				alert("Server error: " + req.responseText);
+				});
+				
+				//after request complete, re-enable the button 
+				req.always(function(){
+				$("#submitbutton").removeAttr("disabled")
+				});
+				//alert("plotted");
+			}
   
 
   });

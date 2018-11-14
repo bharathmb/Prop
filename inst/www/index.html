@@ -39,18 +39,28 @@
 	  	color:black;
 	  	background-color : white;
    	 }
+	 
      #plotdiv1 {
        position: relative;
        width: 600px;
        height: 400px;
        border: solid gray 1px;
      }
-	      #plotdiv {
+	 
+	  #plotdiv {
        position: relative;
        width: 400px;
        height: 400px;
        border: solid gray 1px;
      }
+	 
+	 #plotdiv2 {
+       position: relative;
+       width: 900px;
+       height: 600px;
+       border: solid gray 1px;
+     }
+	 
     </style>						
 </head>
 
@@ -269,27 +279,27 @@
 																<h2><div id="status3">Select a Model to train!</div></h2>
 																<div class="radio-list-cover">
 																	<div class="radio">
-																		<input id="select-1" name="radio" type="radio" value="LR" checked>
+																		<input id="LR" name="radio" type="radio" checked>
 																		<label for="select-1" class="radio-label">Logistic Regression</label>
 																	</div>
 																	<div class="radio">
-																		<input id="select-2" name="radio" type="radio" value="RF">
-																		<label for="select-2" class="radio-label">Random Forest</label>
+																		<input id="RF" name="radio" type="radio" >
+																		<label for="RF" class="radio-label">Random Forest</label>
 																	</div>
 																	
 																	<div class="radio">
-																		<input id="select-3" name="radio" type="radio" value="SVM">
-																		<label for="select-3" class="radio-label">SVM</label>
+																		<input id="SVM" name="radio" type="radio" >
+																		<label for="SVM" class="radio-label">SVM</label>
 																	</div>
 
 																	<div class="radio">
-																		<input id="select-4" name="radio" type="radio" value="GBM">
-																		<label for="select-4" class="radio-label">GBM</label>
+																		<input id="GBM" name="radio" type="radio" >
+																		<label for="GBM" class="radio-label">GBM</label>
 																	</div>
 
 																	<div class="radio">
-																		<input id="select-5" name="radio" type="radio" value="NB">
-																		<label for="select-5" class="radio-label">Naive Bayes</label>
+																		<input id="NB" name="radio" type="radio" >
+																		<label for="NB" class="radio-label">Naive Bayes</label>
 																	</div>
 
 																	<div class="radio">
@@ -311,7 +321,7 @@
 															</div>															
 															<div id="model_out" >
 															<h2 align="center"><b>Model Performance</b></h2>
-															<table class="table table-borderless table-responsive">
+															<table class="table table-borderless table-responsive" id="results_table">
 																<thead>
 																	<tr class>
 																		<th scope="col">Model</th>
@@ -325,45 +335,45 @@
 																<tbody id="normal_results">
 																	<tr>
 																		<th id="mod_nm" scope="row"></th>
-																		<td> 67.17% </td>
-																		<td> 79.82% </td>
-																		<td> 88.79% </td>
-																		<td> 61.47% </td>
-																		<td> 52.34% </td>
+																		<td id="inr"> 67.17% </td>
+																		<td id="acc"> 79.82% </td>
+																		<td id="sen"> 88.79% </td>
+																		<td id="spe"> 61.47% </td>
+																		<td id="kap"> 52.34% </td>
 																	</tr>
 																</tbody>
 																<tbody id="oem_results">
 																	<tr>
 																		<th scope="row">LR</th>
-																		<td> 67.17% </td>
-																		<td> 79.82% </td>
-																		<td> 88.79% </td>
-																		<td> 61.47% </td>
-																		<td> 52.34% </td>
+																		<td id="inr"> 67.17% </td>
+																		<td id="acc"> 79.82% </td>
+																		<td id="sen"> 88.79% </td>
+																		<td id="spe"> 61.47% </td>
+																		<td id="kap"> 52.34% </td>
 																	</tr>
 																	<tr>
 																		<th scope="row">NB</th>
-																		<td> 67.17% </td>
-																		<td> 75.98% </td>
-																		<td> 79.00% </td>
-																		<td> 60.56% </td>
-																		<td> 51.76% </td>
+																		<td id="inr"> 67.17% </td>
+																		<td id="acc"> 75.98% </td>
+																		<td id="sen"> 79.00% </td>
+																		<td id="spe"> 60.56% </td>
+																		<td id="kap"> 51.76% </td>
 																	</tr>
 																	<tr>
 																		<th scope="row">RF</th>
-																		<td> 67.17% </td>
-																		<td> 82.76% </td>
-																		<td> 89.79% </td>
-																		<td> 70.36% </td>
-																		<td> 65.47% </td>
+																		<td id="inr"> 67.17% </td>
+																		<td id="acc"> 82.76% </td>
+																		<td id="sen"> 89.79% </td>
+																		<td id="spe"> 70.36% </td>
+																		<td id="kap"> 65.47% </td>
 																	</tr>
 																	<tr class="table-active">
 																		<th scope="row">OEM</th>
-																		<td> 67.17% </td>
-																		<td> 95.03% </td>
-																		<td> 92.65% </td>
-																		<td> 94.37% </td>
-																		<td> 72.45% </td>
+																		<td id="inr"> 67.17% </td>
+																		<td id="acc"> 95.03% </td>
+																		<td id="sen"> 92.65% </td>
+																		<td id="spe"> 94.37% </td>
+																		<td id="kap"> 72.45% </td>
 																	</tr>
 																</tbody>
 															</table>
@@ -380,16 +390,13 @@
 
                             <div class="list">
                               <h6>Significant Variables</h6>
-                              <ul>
-                                <li>age</li>
-                                <li>gender - female</li>
-                                <li>BMI</li>
-                                <li>country</li>
-                                <li>region EMEA</li>
-                                <li>salary</li>
+                              <ul id="sig_list">
                               </ul>
                             </div>
-
+							
+							<div id="plotdiv2"></div>	
+		
+		<!--
                             <div class="result-chart">
                               <div id="Result01"></div>
                               <div id="Result02"></div>
@@ -423,6 +430,7 @@
                           </div>
                         </div>
                       </li>
+					  -->
 
 
                       <li class="l-section section">
